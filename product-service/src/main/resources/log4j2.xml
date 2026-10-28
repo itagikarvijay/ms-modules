@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" packages="org.apache.logging.log4j">
+    <Properties>
+        <Property name="log-path">C:/logs/</Property>
+    </Properties>
+    <Appenders>
+        <!-- Console Appender with JSON Layout -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <JsonTemplateLayout eventTemplateUri="classpath:LogstashJsonEventLayoutV1.json"/>
+        </Console>
+
+        <!-- Rolling File Appender -->
+        <RollingFile name="RollingFileAppender"
+                     fileName="C:/logs/app1.log"
+                     filePattern="C:/logs/app-%d{yyyy-MM-dd}-%i.log.gz">
+            <JsonTemplateLayout eventTemplateUri="classpath:LogstashJsonEventLayoutV1.json"/>
+            <Policies>
+                <OnStartupTriggeringPolicy minSize="1"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Logger for the specific package -->
+        <Logger name="com.product.service" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFileAppender"/>
+        </Logger>
+
+        <!-- Root Logger -->
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,0 +1,105 @@
+#receivers:
+#  otlp:
+#    protocols:
+#      grpc:
+#        endpoint: otel-collector:4317
+#      http:
+#        endpoint: otel-collector:4318
+#
+#exporters:
+#  prometheus:
+#    endpoint: "0.0.0.0:9464"
+#  otlp:
+#    endpoint: "http://jaeger:4317"
+#    tls:
+#      insecure: true
+#  otlphttp/logs:
+#    endpoint: "http://loki:3100/otlp"
+#    tls:
+#      insecure: true
+#  debug:
+#    verbosity: detailed
+#    sampling_initial: 5
+#    sampling_thereafter: 200
+#
+#processors:
+#  batch:
+#
+#service:
+#  pipelines:
+#    metrics:
+#      receivers: [otlp]
+#      processors: [batch]
+#      exporters: [ prometheus ]
+#    traces:
+#      receivers: [ otlp ]
+#      processors: [ batch ]
+#      exporters: [ otlp ]
+#    logs:
+#      receivers: [ otlp ]
+#      processors: [ batch ]
+#      exporters: [ otlphttp/logs, otlp, debug ]
+
+
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: otel-collector:4317
+      http:
+        endpoint: otel-collector:4318
+  filelog:
+    include: [/var/log/order-service/*.log, /var/log/product-service/*.log]
+    start_at: beginning
+
+processors:
+  batch:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+exporters:
+  # Logs → Loki
+  otlphttp/logs:
+    endpoint: "http://loki:3100/otlp"
+    tls:
+      insecure: true
+
+  # Traces → Jaeger
+  otlp:
+    endpoint: "http://jaeger:4317"
+    tls:
+      insecure: true
+
+  # Traces → Tempo
+#  tempo:
+#    endpoint: http://tempo:4317
+
+  # Metrics → Prometheus
+  prometheus:
+    endpoint: "0.0.0.0:9464"
+
+  # Debug (stdout)
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp, filelog]
+      processors: [batch, memory_limiter]
+      exporters: [otlphttp/logs, debug]
+
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus, debug]

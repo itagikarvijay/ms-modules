@@ -1,0 +1,15 @@
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+COPY target/product-service-0.0.1-SNAPSHOT.jar app.jar
+COPY ../opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
+
+# Environment variables for OpenTelemetry
+ENV OTEL_SERVICE_NAME=product-service
+ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+ENV OTEL_METRICS_EXPORTER=none
+ENV OTEL_TRACES_EXPORTER=otlp
+
+# Run with agent attached
+ENTRYPOINT ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-jar", "app.jar"]
+
+#ENTRYPOINT ["java","-jar","app.jar"]

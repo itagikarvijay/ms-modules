@@ -1,0 +1,10 @@
+target/
+build/
+.gradle/
+.idea/
+*.iml
+.vscode/
+*.log
+.env
+application-local.properties
+application-local.yml
